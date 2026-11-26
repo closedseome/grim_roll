@@ -1,33 +1,42 @@
+import pygame
+import sys
 from entities import Player, Enemy
 from cards import StrikeCard, ShieldCard, HeavyBlowCard
 from engine import BattleEngine
-from ui import GameUI
+from ui import GraphicalUI
 
-def generate_enemies(count: int) -> list[Enemy]:
-    enemies = []
-    for i in range(1, count + 1):
-        enemies.append(Enemy(name=f"Скелет #{i}", max_hp=15 + i * 5, base_damage=4 + i))
-    return enemies
-
-def main():
-    ui = GameUI()
-    ui.clear()
-    ui.show_message("Добро пожаловать в GRIM ROLL!")
-    
+def create_game() -> BattleEngine:
     player = Player(name="Искатель", max_hp=50)
     player.deck = [StrikeCard(), ShieldCard(), HeavyBlowCard()]
+    
+    enemies = [
+        Enemy(name="Скелет-воин", max_hp=20, base_damage=5),
+        Enemy(name="Темный рыцарь", max_hp=30, base_damage=7),
+        Enemy(name="Некромант (Босс)", max_hp=45, base_damage=9),
+    ]
+    return BattleEngine(player, enemies)
 
-    enemies_to_defeat = 3
-    enemies = generate_enemies(enemies_to_defeat)
+def main():
+    ui = GraphicalUI(width=900, height=600)
+    engine = create_game()
+    clock = pygame.time.Clock()
 
-    for idx, enemy in enumerate(enemies, 1):
-        ui.show_message(f"Этап {idx} из {enemies_to_defeat}")
-        battle = BattleEngine(player, enemy, ui)
-        if not battle.start_battle():
-            ui.show_message("ВЫ ПОГИБЛИ. Игра окончена.", pause=2.5)
-            return
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+                
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                ui.handle_click(event.pos, engine)
+                
+            # Рестарт игры на клавишу R после победы или поражения
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                if engine.game_state in ("VICTORY", "GAME_OVER"):
+                    engine = create_game()
 
-    ui.show_message("ПОБЕДА! Все враги повержены!", pause=3.0)
+        ui.draw(engine)
+        clock.tick(60)
 
 if __name__ == "__main__":
     main()
