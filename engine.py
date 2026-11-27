@@ -116,26 +116,26 @@ class BattleEngine:
             self.selected_dice_idx = index
             val = self.dice_pool[index]
             self.status_message = f"Выбран кубик [{val}]. Теперь кликните по карте."
-        @log_calls
-        def try_play_card(self, card_index: int):
-            """Попытка сыграть карту выбранным кубиком."""
-            if self.game_state != "PLAYING":
-                raise GameOverError("Игра уже завершена!")
+    @log_calls
+    def try_play_card(self, card_index: int):
+        """Попытка сыграть карту выбранным кубиком."""
+        if self.game_state != "PLAYING":
+            raise GameOverError("Игра уже завершена!")
 
-            if self.selected_dice_idx is None:
-                raise NoDiceSelectedError()
+        if self.selected_dice_idx is None:
+            raise NoDiceSelectedError()
 
-            card = self.player.deck[card_index]
-            dice_val = self.dice_pool[self.selected_dice_idx]
+        card = self.player.deck[card_index]
+        dice_val = self.dice_pool[self.selected_dice_idx]
 
-            if not card.can_use(dice_val):
-                raise InvalidDiceForCardError(dice_val, card.condition_desc)
+        if not card.can_use(dice_val):
+            raise InvalidDiceForCardError(dice_val, card.condition_desc)
 
-            self.dice_pool.pop(self.selected_dice_idx)
-            self.selected_dice_idx = None
-            card.play(self.player, self.enemy, dice_val)
-            self.status_message = f"Использована '{card.name}' ({dice_val})!"
-            self._check_enemy_status()
+        self.dice_pool.pop(self.selected_dice_idx)
+        self.selected_dice_idx = None
+        card.play(self.player, self.enemy, dice_val)
+        self.status_message = f"Использована '{card.name}' ({dice_val})!"
+        self._check_enemy_status()
     @log_calls
     def end_player_turn(self):
         """Завершение хода игрока и атака врага."""
