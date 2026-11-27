@@ -1,6 +1,30 @@
 import random
 from entities import Player, Enemy
 
+class GameError(Exception):
+    """Базовая ошибка игры."""
+
+
+class NoDiceSelectedError(GameError):
+    """Игрок попытался сыграть карту, не выбрав кубик."""
+    def __init__(self):
+        super().__init__("Сначала кликните по кубику!")
+
+
+class InvalidDiceForCardError(GameError):
+    """Значение кубика не подходит для активации карты."""
+    def __init__(self, dice_val: int, condition_desc: str):
+        self.dice_val = dice_val
+        self.condition_desc = condition_desc
+        super().__init__(
+            f"Кубик [{dice_val}] не подходит! Нужно: {condition_desc}"
+        )
+
+
+class GameOverError(GameError):
+    """Попытка совершить действие после завершения игры."""
+    pass
+
 class DicePool:
     """Контейнер для кубиков, эмулирующий встроенный список."""
 
@@ -85,13 +109,21 @@ class BattleEngine:
             self.status_message = f"Выбран кубик [{val}]. Теперь кликните по карте."
 
     def try_play_card(self, card_index: int):
-        """Попытка сыграть карту выбранным кубиком."""
         if self.game_state != "PLAYING":
-            return
+            raise GameOverError("Игра уже завершена!")
 
         if self.selected_dice_idx is None:
-            self.status_message = "Сначала кликните по кубику!"
-            return
+            raise NoDiceSelectedError()
+
+        if not card.can_use(dice_val):
+            raise InvalidDiceForCardError(dice_val, card.condition_desc)
+
+        # Успешный ход (без else — после raise код ниже не выполнится при ошибке)
+        self.dice_pool.pop(self.selected_dice_idx)
+        self.selected_dice_idx = None
+        card.play(self.player, self.enemy, dice_val)
+        self.status_message = f"Использована '{card.name}' ({dice_val})!"
+        self._check_enemy_status()
 
         card = self.player.deck[card_index]
         dice_val = self.dice_pool[self.selected_dice_idx]
