@@ -1,6 +1,32 @@
 import random
 from entities import Player, Enemy
 
+class DicePool:
+    """Контейнер для кубиков, эмулирующий встроенный список."""
+
+    def __init__(self):
+        self._dice: list[int] = []
+
+    def roll(self, count: int = 3) -> None:
+        self._dice = [random.randint(1, 6) for _ in range(count)]
+
+    def pop(self, index: int) -> int:
+        return self._dice.pop(index)
+
+    def is_empty(self) -> bool:
+        return len(self._dice) == 0
+
+    def __len__(self) -> int:
+        return len(self._dice)
+
+    def __getitem__(self, index: int) -> int:
+        return self._dice[index]
+
+    def __str__(self) -> str:
+        return f"Кубики: {self._dice}"
+
+    def __repr__(self) -> str:
+        return f"DicePool({self._dice})"
 class BattleEngine:
     def __init__(self, player: Player, enemies: list[Enemy]):
         self.player = player
@@ -8,7 +34,7 @@ class BattleEngine:
         self.current_enemy_idx = 0
         self.enemy = self.enemies[self.current_enemy_idx]
         
-        self.dice_pool = []
+        self.dice_pool = DicePool()
         self._selected_dice_idx = None  # Индекс выбранного мышкой кубика
         self.status_message = "Ваш ход! Выберите кубик и карту."
         self._game_state = "PLAYING"    # PLAYING, VICTORY, GAME_OVER
@@ -47,7 +73,7 @@ class BattleEngine:
 
     def start_player_turn(self):
         self.player.reset_block()
-        self.dice_pool = [random.randint(1, 6) for _ in range(3)]
+        self.dice_pool.roll(3)
         self.selected_dice_idx = None
         self.status_message = "Выберите кубик, затем карту."
 
