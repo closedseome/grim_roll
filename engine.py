@@ -1,4 +1,5 @@
 import random
+import functools
 from entities import Player, Enemy
 
 class GameError(Exception):
@@ -24,7 +25,15 @@ class InvalidDiceForCardError(GameError):
 class GameOverError(GameError):
     """Попытка совершить действие после завершения игры."""
     pass
-
+def log_calls(func):
+    """Декоратор для логирования вызовов методов движка."""
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        print(f"[LOG] -> {func.__name__}({args[1:]}, {kwargs})")
+        result = func(*args, **kwargs)
+        print(f"[LOG] <- {func.__name__} done")
+        return result
+    return wrapper
 class DicePool:
     """Контейнер для кубиков, эмулирующий встроенный список."""
 
@@ -100,14 +109,14 @@ class BattleEngine:
         self.dice_pool.roll(3)
         self.selected_dice_idx = None
         self.status_message = "Выберите кубик, затем карту."
-
+    @log_calls
     def select_dice(self, index: int):
         """Выбор кубика кликом мыши."""
         if 0 <= index < len(self.dice_pool):
             self.selected_dice_idx = index
             val = self.dice_pool[index]
             self.status_message = f"Выбран кубик [{val}]. Теперь кликните по карте."
-
+    @log_calls
     def try_play_card(self, card_index: int):
         if self.game_state != "PLAYING":
             raise GameOverError("Игра уже завершена!")
@@ -136,7 +145,7 @@ class BattleEngine:
             self._check_enemy_status()
         else:
             self.status_message = f"Кубик [{dice_val}] не подходит! Нужно: {card.condition_desc}"
-
+    @log_calls
     def end_player_turn(self):
         """Завершение хода игрока и атака врага."""
         if self.game_state != "PLAYING":
