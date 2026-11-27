@@ -31,7 +31,7 @@ class ShieldCard(Card):
         super().__init__(
             name="Глухая оборона",
             description="Дает броню, равную значению кубика + 2.",
-            condition_desc="Только четные (2, 4, 6)"
+            condition_desc="Только четные"
         )
 
     def can_use(self, dice_value: int) -> bool:
