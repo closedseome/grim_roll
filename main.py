@@ -2,7 +2,13 @@ import pygame
 import sys
 from entities import Player, Enemy
 from cards import StrikeCard, ShieldCard, HeavyBlowCard
-from engine import BattleEngine
+from engine import (
+    BattleEngine,
+    GameError,
+    NoDiceSelectedError,
+    InvalidDiceForCardError,
+    GameOverError,
+)
 from ui import GraphicalUI
 
 def create_game() -> BattleEngine:
@@ -28,7 +34,16 @@ def main():
                 sys.exit()
                 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                ui.handle_click(event.pos, engine)
+                try:
+                    ui.handle_click(event.pos, engine)
+                except NoDiceSelectedError as e:
+                    engine.status_message = str(e)
+                except InvalidDiceForCardError as e:
+                    engine.status_message = str(e)
+                except GameOverError as e:
+                    engine.status_message = str(e)
+                except GameError as e:
+                    engine.status_message = f"Ошибка: {e}"
                 
             # Рестарт игры на клавишу R после победы или поражения
             if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
