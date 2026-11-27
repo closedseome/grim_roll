@@ -9,11 +9,41 @@ class BattleEngine:
         self.enemy = self.enemies[self.current_enemy_idx]
         
         self.dice_pool = []
-        self.selected_dice_idx = None  # Индекс выбранного мышкой кубика
+        self._selected_dice_idx = None  # Индекс выбранного мышкой кубика
         self.status_message = "Ваш ход! Выберите кубик и карту."
-        self.game_state = "PLAYING"    # PLAYING, VICTORY, GAME_OVER
+        self._game_state = "PLAYING"    # PLAYING, VICTORY, GAME_OVER
         
         self.start_player_turn()
+
+    @property
+    def selected_dice_idx(self):
+        return self._selected_dice_idx
+
+    @selected_dice_idx.setter
+    def selected_dice_idx(self, value):
+        if value is None:
+            self._selected_dice_idx = None
+        elif 0 <= value < len(self.dice_pool):
+            self._selected_dice_idx = value
+        else:
+            raise ValueError(
+                f"Индекс {value} вне диапазона кубиков "
+                f"(0-{len(self.dice_pool) - 1})"
+            )
+
+    @property
+    def game_state(self) -> str:
+        return self._game_state
+
+    @game_state.setter
+    def game_state(self, value: str):
+        valid_states = {"PLAYING", "VICTORY", "GAME_OVER"}
+        if value not in valid_states:
+            raise ValueError(
+                f"Недопустимое состояние: {value}. "
+                f"Допустимы: {valid_states}"
+            )
+        self._game_state = value
 
     def start_player_turn(self):
         self.player.reset_block()
